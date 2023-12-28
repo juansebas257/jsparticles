@@ -1,0 +1,150 @@
+<canvas id="life" width="1600" height="700"></canvas>
+<br />
+<button onclick="start()">Start</button>
+<button onclick="stop()">Stop</button>
+<button onclick="nextFrame()">next frame</button>
+
+<script>
+  let running = false;
+  let m = document.getElementById("life").getContext("2d");
+  const frameWitdh = 1600;
+  const frameHeight = 700;
+
+  let draw = (x, y, color, size) => {
+    m.fillStyle = color;
+    m.fillRect(x, y, size, size);
+  };
+
+  let particles = [];
+
+  const particle = (x, y, color) => {
+    return {
+      x,
+      y,
+      vx: 0,
+      vy: 0,
+      color,
+    };
+  };
+
+  const random = () => {
+    return Math.random() * frameWitdh + 20;
+  };
+
+  const create = (number, color) => {
+    let group = [];
+    for (let i = 0; i < number; i++) {
+      group.push(particle(random(), random(), color));
+      particles.push(group[i]);
+    }
+
+    return group;
+  };
+
+  const attractionRule = (particles1, particles2, gravity) => {
+    attractionRange = 80;
+
+    for (let i = 0; i < particles1.length; i++) {
+      fx = 0;
+      fy = 0;
+
+      for (let j = 0; j < particles2.length; j++) {
+        a = particles1[i];
+        b = particles2[j];
+
+        const distanceX = a.x - b.x;
+        const distanceY = a.y - b.y;
+
+        const distance = Math.sqrt(
+          distanceX * distanceX + distanceY * distanceY
+        );
+
+        if (distance > 0 && distance < attractionRange) {
+          const Force = (gravity * 1) / distance;
+          fx += Force * distanceX;
+          fy += Force * distanceY;
+        }
+
+        a.vx += fx;
+        a.vy += fy;
+        a.x += a.vx;
+        a.y += a.vy;
+
+        if (a.x <= 0 || a.x >= frameWitdh) a.vx *= -1;
+        if (a.y <= 0 || a.y >= frameHeight) a.vy *= -1;
+      }
+    }
+  };
+
+  rule = (particles1, particles2, g, attractionRange) => {
+    for (let i = 0; i < particles1.length; i++) {
+      fx = 0;
+      fy = 0;
+      for (let j = 0; j < particles2.length; j++) {
+        a = particles1[i];
+        b = particles2[j];
+        dx = a.x - b.x;
+        dy = a.y - b.y;
+        d = Math.sqrt(dx * dx + dy * dy);
+        if (d > 0 && d < attractionRange) {
+          F = (g * 1) / d;
+          fx += F * dx;
+          fy += F * dy;
+        }
+      }
+      a.vx = (a.vx + fx) * 0.5;
+      a.vy = (a.vy + fy) * 0.5;
+      a.x += a.vx;
+      a.y += a.vy;
+
+      if (a.x <= 0 || a.x >= frameWitdh - 50) a.vx *= -1;
+      if (a.y <= 0 || a.y >= frameHeight - 50) a.vy *= -1;
+    }
+  };
+
+  const yellow = create(200, "yellow");
+  const red = create(200, "red");
+  const green = create(200, "green");
+  const blue = create(200, "blue");
+  const purple = create(200, "purple");
+
+  const update = () => {
+    rule(red, red, -0.1, 180);
+    rule(red, yellow, -0.1, 150);
+    rule(yellow, red, 0.01, 160);
+    rule(green, green, -0.07, 180);
+    rule(green, red, -0.2, 120);
+    rule(red, green, -0.1, 110);
+    rule(blue, green, -0.5, 300);
+    rule(purple, blue, 0.5, 100);
+    rule(yellow, purple, 0.4, 500);
+    rule(purple, yellow, 0.1, 100);
+    rule(yellow, blue, -0.8, 400);
+
+    m.clearRect(0, 0, frameWitdh, frameHeight);
+    draw(0, 0, "black", frameWitdh, frameHeight);
+
+    particles.forEach((particle) => {
+      draw(particle.x, particle.y, particle.color, 5);
+    });
+
+    if (running) {
+      requestAnimationFrame(update);
+    }
+  };
+
+  stop = () => {
+    running = false;
+  };
+
+  start = () => {
+    running = true;
+    update();
+  };
+
+  nextFrame = () => {
+    update();
+  };
+
+  start();
+</script>
